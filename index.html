@@ -5,14 +5,8 @@
     'use strict';
 'coded between 5am and 10am under yellow and brown by zero';
 /*cx and cy are center coordinates, ax0-1 and ay0-1 bound the rendered area */
-var opt = { width : 500, height : 500, cx : 350, cy : 250, maxIter : 100, ax0 : -2.5, ax1 : 1, ay0 : -1, ay1 : 1 };
+var opt = { width : 500, height : 500, cx : 350, cy : 250, maxIter : 1000, ax0 : -2.5, ax1 : 1, ay0 : -1, ay1 : 1 };
 
-function zoomTo(x0,y0,x1,y1){
-    opt.ax0 = x0;
-    opt.ax1 = x1;
-    opt.ay0 = y0;
-    opt.ay1 = y1;
-}
 
 /*map screen coordinates to complex numbers*/
 function complexFromCoord(x, y){
@@ -26,7 +20,8 @@ function sketchProc(processing) {
   processing.draw = function() {
       /*the faster the value escapes to infinity, the brighter the color will be*/
       function iterColor(iter){
-	  return processing.color(255*(opt.maxIter-iter)/opt.maxIter, 0, 0);
+	  var r = 0, g = 0, b = 0;
+	  return processing.color(255*(opt.maxIter-iter)/opt.maxIter, 128*(opt.maxIter-iter)/opt.maxIter, 0);
       }
       
       function mandeldot(x, y, iter) {
@@ -43,24 +38,32 @@ function sketchProc(processing) {
 	      var c = complexFromCoord(x, y);
 	      var r = c[0], i = c[1], r2 = 0, i2 = 0, k = 1;
 	      /*exit the loop at the point when the current member breaks out of boundary (2)*/
-	      for(var iter = 0; (r*r + i*i) < 2*2 && iter < opt.maxIter; iter++){
+	      for(var iter = 0; ((r*r + i*i) < 2*2) && iter < opt.maxIter; iter++){
 		  var r2temp = r2*r2 - i2*i2 + r;
 		  i2 = 2*r2*i2 + i;
 		  r2 = r2temp;
 	      }
-	      mandeldot(x, y, iterColor(iter));
+	      mandeldot(x, y, iter);
 	      
 	  }
 	  
-      }alert("");
+      }
       
-      
+      processing.noLoop();
   };
 }
 
 var canvas = document.getElementById("canvas1");
 // attaching the sketchProc function to the canvas
-var processingInstance = new Processing(canvas, sketchProc)
-    .size(opt.width,opt.height);
+var processingInstance = new Processing(canvas, sketchProc);
+processingInstance.size(opt.width,opt.height);
+
+function zoomTo(x0,x1,y0,y1){
+    opt.ax0 = x0;
+    opt.ax1 = x1;
+    opt.ay0 = y0;
+    opt.ay1 = y1;
+    processingInstance.draw();
+}
 
 </script>
