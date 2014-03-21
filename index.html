@@ -1,0 +1,66 @@
+<script src="processing-1.4.1.min.js"></script>
+<canvas id="canvas1"></canvas>
+<script type="text/javascript">
+/*mandelbrot generator. complex numbers are represented by [real,imag] arrays*/
+    'use strict';
+'coded between 5am and 10am under yellow and brown by zero';
+/*cx and cy are center coordinates, ax0-1 and ay0-1 bound the rendered area */
+var opt = { width : 500, height : 500, cx : 350, cy : 250, maxIter : 100, ax0 : -2.5, ax1 : 1, ay0 : -1, ay1 : 1 };
+
+function zoomTo(x0,y0,x1,y1){
+    opt.ax0 = x0;
+    opt.ax1 = x1;
+    opt.ay0 = y0;
+    opt.ay1 = y1;
+}
+
+/*map screen coordinates to complex numbers*/
+function complexFromCoord(x, y){
+    return [opt.ax0 + Math.abs(opt.ax1-opt.ax0)*x/opt.width,
+	    /*reverse y axis, as in algebra positive end is up, but on the screen positive side is down*/
+	   opt.ay1 - Math.abs(opt.ay1-opt.ay0)*y/opt.height];
+}
+
+function sketchProc(processing) {
+  // Override draw function, by default it will be called 60 times per second
+  processing.draw = function() {
+      /*the faster the value escapes to infinity, the brighter the color will be*/
+      function iterColor(iter){
+	  return processing.color(255*(opt.maxIter-iter)/opt.maxIter, 0, 0);
+      }
+      
+      function mandeldot(x, y, iter) {
+	  processing.stroke(iterColor(iter));
+	  processing.point(x, y);
+      }
+      
+      // erase background
+      processing.background(processing.color(0, 255, 0));
+      
+      /*x,y are pixel positions, c is the corresponding complex number, r = real part, i = imaginary part, r2 and i2 represent next members of the function, k is the k in z_n+1 = z_n^2 + k*/
+      for(var x=0; x<opt.width; x++) {
+	  for(var y=0; y<opt.height; y++) {
+	      var c = complexFromCoord(x, y);
+	      var r = c[0], i = c[1], r2 = 0, i2 = 0, k = 1;
+	      /*exit the loop at the point when the current member breaks out of boundary (2)*/
+	      for(var iter = 0; (r*r + i*i) < 2*2 && iter < opt.maxIter; iter++){
+		  var r2temp = r2*r2 - i2*i2 + r;
+		  i2 = 2*r2*i2 + i;
+		  r2 = r2temp;
+	      }
+	      mandeldot(x, y, iterColor(iter));
+	      
+	  }
+	  
+      }alert("");
+      
+      
+  };
+}
+
+var canvas = document.getElementById("canvas1");
+// attaching the sketchProc function to the canvas
+var processingInstance = new Processing(canvas, sketchProc)
+    .size(opt.width,opt.height);
+
+</script>
